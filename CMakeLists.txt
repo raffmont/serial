@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(serial)
 
+set(SERIAL_INCLUDE_INSTALL_DIR "include")
+set(SERIAL_LIB_INSTALL_DIR "lib")
+
 # Find catkin
-find_package(catkin REQUIRED)
+find_package(catkin)
 
 if(APPLE)
 	find_library(IOKIT_LIBRARY IOKit)
@@ -13,17 +16,23 @@ if(UNIX AND NOT APPLE)
     # If Linux, add rt and pthread
     set(rt_LIBRARIES rt)
     set(pthread_LIBRARIES pthread)
-    catkin_package(
-        LIBRARIES ${PROJECT_NAME}
-        INCLUDE_DIRS include
-        DEPENDS rt pthread
-    )
+    # Check if catkin has been founf
+    if (catkin_FOUND)
+        catkin_package(
+            LIBRARIES ${PROJECT_NAME}
+            INCLUDE_DIRS include
+            DEPENDS rt pthread
+        )
+    endif()
 else()
     # Otherwise normal call
-    catkin_package(
-        LIBRARIES ${PROJECT_NAME}
-        INCLUDE_DIRS include
-    )
+    # Check if catkin has been founf
+    if (catkin_FOUND)
+        catkin_package(
+            LIBRARIES ${PROJECT_NAME}
+            INCLUDE_DIRS include
+        )
+    endif()
 endif()
 
 ## Sources
@@ -64,17 +73,32 @@ target_link_libraries(serial_example ${PROJECT_NAME})
 ## Include headers
 include_directories(include)
 
-## Install executable
-install(TARGETS ${PROJECT_NAME}
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-)
+# Check if catkin has been founf
+if (catkin_FOUND)
+    ## Install executable
+    install(TARGETS ${PROJECT_NAME}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    )
 
-## Install headers
-install(FILES include/serial/serial.h include/serial/v8stdint.h
-  DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/serial)
+    ## Install headers
+    install(FILES include/serial/serial.h include/serial/v8stdint.h
+        DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/serial
+    )
 
-## Tests
-if(CATKIN_ENABLE_TESTING)
-    add_subdirectory(tests)
+    ## Tests
+    if(CATKIN_ENABLE_TESTING)
+        add_subdirectory(tests)
+    endif()
+else()
+    ## Install executable
+    install(TARGETS ${PROJECT_NAME}
+        ARCHIVE DESTINATION ${SERIAL_LIB_INSTALL_DIR}
+        LIBRARY DESTINATION ${SERIAL_LIB_INSTALL_DIR}
+    )
+
+    ## Install headers
+    install(FILES include/serial/serial.h include/serial/v8stdint.h
+        DESTINATION ${SERIAL_INCLUDE_INSTALL_DIR}/serial
+    )
 endif()
